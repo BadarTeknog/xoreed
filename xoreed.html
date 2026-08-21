@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XOREED — Dompet Digital Perangkat Keras Non-Custodial</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+<style>
+  :root{
+    --void:#0c0f11;
+    --panel:#14181b;
+    --panel-2:#191e22;
+    --line:#262c30;
+    --line-soft:#1d2226;
+    --text-hi:#edeff0;
+    --text-mid:#93a0a8;
+    --text-low:#5c666c;
+    --brass:#c89b4a;
+    --brass-soft:rgba(200,155,74,0.12);
+    --signal:#5fc9a0;
+    --signal-soft:rgba(95,201,160,0.12);
+    --radius:2px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--void);
+    color:var(--text-hi);
+    font-family:'Manrope', sans-serif;
+    line-height:1.6;
+    overflow-x:hidden;
+    background-image:
+      repeating-linear-gradient(45deg, var(--line-soft) 0, var(--line-soft) 1px, transparent 1px, transparent 14px),
+      repeating-linear-gradient(-45deg, var(--line-soft) 0, var(--line-soft) 1px, transparent 1px, transparent 14px);
+    background-attachment:fixed;
+  }
+
+  ::selection{ background:var(--brass); color:var(--void); }
+
+  a{ color:inherit; text-decoration:none; }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:22px; height:1px;
+    background:var(--brass);
+    display:inline-block;
+  }
+
+  h1,h2,h3{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    letter-spacing:-0.01em;
+    line-height:1.1;
+  }
+
+  .container{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+
+  /* ---------- NAV ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(12,15,17,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 0;
+  }
+  .logo{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:18px;
+    letter-spacing:0.01em;
+  }
+  .logo .bx{ font-size:20px; color:var(--brass); }
+  .logo span.dim{ color:var(--text-low); font-weight:500; }
+
+  .nav-links{ display:flex; gap:36px; }
+  .nav-links a{
+    font-size:14px;
+    color:var(--text-mid);
+    transition:color .2s ease;
+  }
+  .nav-links a:hover{ color:var(--text-hi); }
+
+  .nav-cta{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.06em;
+    padding:9px 18px;
+    border:1px solid var(--line);
+    color:var(--text-hi);
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .nav-cta:hover{ border-color:var(--brass); background:var(--brass-soft); }
+
+  .bx-menu-btn{ display:none; font-size:24px; color:var(--text-hi); background:none; border:none; cursor:pointer; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:96px 0 80px;
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    gap:56px;
+    align-items:center;
+  }
+  .hero-copy .eyebrow{ margin-bottom:22px; }
+  .hero h1{
+    font-size:clamp(38px, 4.6vw, 58px);
+    margin-bottom:22px;
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--brass);
+  }
+  .hero p.lede{
+    color:var(--text-mid);
+    font-size:17px;
+    max-width:480px;
+    margin-bottom:34px;
+  }
+  .hero-actions{ display:flex; gap:14px; flex-wrap:wrap; }
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:14px 24px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    letter-spacing:0.04em;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:all .2s ease;
+  }
+  .btn-primary{
+    background:var(--brass);
+    color:var(--void);
+    font-weight:500;
+  }
+  .btn-primary:hover{ background:#dcae5c; transform:translateY(-1px); }
+  .btn-secondary{
+    border-color:var(--line);
+    color:var(--text-hi);
+  }
+  .btn-secondary:hover{ border-color:var(--text-mid); }
+
+  .hero-stats{
+    display:flex; gap:30px;
+    margin-top:44px;
+    padding-top:28px;
+    border-top:1px solid var(--line);
+    max-width:480px;
+  }
+  .hero-stats div{ display:flex; flex-direction:column; gap:4px; }
+  .hero-stats .num{ font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; color:var(--text-hi); }
+  .hero-stats .lbl{ font-size:11.5px; color:var(--text-low); font-family:'JetBrains Mono', monospace; letter-spacing:0.04em; }
+
+  /* ---------- Entropy visual (signature element) ---------- */
+  .entropy-frame{
+    position:relative;
+    aspect-ratio:1/1;
+    border:1px solid var(--line);
+    background:radial-gradient(circle at 50% 40%, var(--panel-2), var(--panel) 70%);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .entropy-frame canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .entropy-frame .frame-label{
+    position:absolute; top:16px; left:18px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--text-low);
+    letter-spacing:0.06em;
+    z-index:2;
+  }
+  .entropy-frame .frame-label span{ color:var(--signal); }
+  .entropy-frame .corner{
+    position:absolute; width:14px; height:14px;
+    border-color:var(--brass);
+    z-index:2;
+  }
+  .corner.tl{ top:12px; left:12px; border-top:1px solid; border-left:1px solid; }
+  .corner.tr{ top:12px; right:12px; border-top:1px solid; border-right:1px solid; }
+  .corner.bl{ bottom:12px; left:12px; border-bottom:1px solid; border-left:1px solid; }
+  .corner.br{ bottom:12px; right:12px; border-bottom:1px solid; border-right:1px solid; }
+  .entropy-frame .key-glyph{
+    position:relative; z-index:2;
+    font-size:44px;
+    color:var(--text-hi);
+    opacity:0.92;
+    filter:drop-shadow(0 0 18px rgba(200,155,74,0.35));
+  }
+
+  /* ---------- Section shell ---------- */
+  section{ padding:100px 0; border-top:1px solid var(--line); }
+  .section-head{
+    max-width:640px;
+    margin-bottom:56px;
+  }
+  .section-head .eyebrow{ margin-bottom:18px; }
+  .section-head h2{ font-size:clamp(28px,3vw,38px); margin-bottom:14px; }
+  .section-head p{ color:var(--text-mid); font-size:15.5px; }
+
+  /* ---------- Features ---------- */
+  .feature-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+  }
+  .feature-card{
+    background:var(--panel);
+    padding:34px 30px;
+    transition:background .25s ease;
+  }
+  .feature-card:hover{ background:var(--panel-2); }
+  .feature-card .bx{
+    font-size:26px;
+    color:var(--brass);
+    margin-bottom:20px;
+    display:block;
+  }
+  .feature-card h3{ font-size:17px; margin-bottom:10px; }
+  .feature-card p{ font-size:14px; color:var(--text-mid); }
+
+  /* ---------- Layered security ---------- */
+  .layers{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+  }
+  .layer-row{
+    display:grid;
+    grid-template-columns:64px 1fr 1fr;
+    gap:28px;
+    align-items:center;
+    padding:26px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .layer-row:first-child{ border-top:1px solid var(--line); }
+  .layer-idx{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    color:var(--signal);
+  }
+  .layer-title{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16.5px; }
+  .layer-desc{ color:var(--text-mid); font-size:14px; }
+
+  /* ---------- Terminal / crypto spec ---------- */
+  .terminal-wrap{
+    display:grid;
+    grid-template-columns:0.9fr 1.1fr;
+    gap:56px;
+    align-items:start;
+  }
+  .terminal{
+    background:var(--panel);
+    border:1px solid var(--line);
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    overflow:hidden;
+  }
+  .terminal-bar{
+    display:flex; align-items:center; gap:8px;
+    padding:12px 16px;
+    border-bottom:1px solid var(--line);
+    background:var(--panel-2);
+  }
+  .terminal-bar span{ width:9px; height:9px; border-radius:50%; background:var(--line); }
+  .terminal-bar .label{ margin-left:8px; color:var(--text-low); font-size:11.5px; }
+  .terminal-body{ padding:22px 20px; color:var(--text-mid); }
+  .terminal-body .ln{ margin-bottom:9px; white-space:pre-wrap; }
+  .terminal-body .k{ color:var(--brass); }
+  .terminal-body .v{ color:var(--text-hi); }
+  .terminal-body .ok{ color:var(--signal); }
+  .terminal-body .comment{ color:var(--text-low); }
+  .cursor-blink{ display:inline-block; width:7px; height:14px; background:var(--brass); animation:blink 1s steps(1) infinite; vertical-align:middle; }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .terminal-notes h2{ font-size:26px; margin-bottom:16px; }
+  .terminal-notes p{ color:var(--text-mid); font-size:15px; margin-bottom:16px; }
+  .terminal-notes ul{ list-style:none; }
+  .terminal-notes li{
+    display:flex; gap:12px;
+    padding:12px 0;
+    border-top:1px solid var(--line-soft);
+    font-size:14px; color:var(--text-mid);
+  }
+  .terminal-notes li .bx{ color:var(--signal); font-size:16px; margin-top:2px; }
+  .terminal-notes li b{ color:var(--text-hi); font-weight:600; }
+
+  /* ---------- Materials ---------- */
+  .material-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:24px;
+  }
+  .material-card{
+    border:1px solid var(--line);
+    background:var(--panel);
+  }
+  .swatch{
+    height:150px;
+    position:relative;
+    overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .swatch-carbon{
+    background:
+      repeating-linear-gradient(45deg, #23272a 0 6px, #1a1d20 6px 12px),
+      repeating-linear-gradient(-45deg, rgba(0,0,0,0.35) 0 6px, transparent 6px 12px);
+  }
+  .swatch-kevlar{
+    background:
+      repeating-linear-gradient(0deg, #1c2420 0 5px, #222b26 5px 10px),
+      repeating-linear-gradient(90deg, rgba(95,201,160,0.06) 0 5px, transparent 5px 10px);
+  }
+  .swatch-epoxy{
+    background:linear-gradient(135deg, #2a231a, #16130f 60%, #3a2c18);
+    position:relative;
+  }
+  .swatch-epoxy::after{
+    content:'';
+    position:absolute; inset:0;
+    background:radial-gradient(circle at 30% 30%, rgba(200,155,74,0.35), transparent 55%);
+  }
+  .material-info{ padding:20px 22px; }
+  .material-info .tag{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--brass); letter-spacing:0.06em; margin-bottom:8px; display:block; }
+  .material-info h3{ font-size:16px; margin-bottom:8px; }
+  .material-info p{ font-size:13.5px; color:var(--text-mid); }
+
+  /* ---------- Non-custodial statement ---------- */
+  .statement{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:56px;
+    align-items:center;
+  }
+  .statement blockquote{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:clamp(24px,2.6vw,32px);
+    font-weight:600;
+    line-height:1.35;
+    color:var(--text-hi);
+  }
+  .statement blockquote .brass-mark{ color:var(--brass); }
+  .statement-points{ display:flex; flex-direction:column; gap:22px; }
+  .statement-points .point{ display:flex; gap:16px; }
+  .statement-points .bx{ font-size:20px; color:var(--signal); margin-top:2px; }
+  .statement-points b{ display:block; font-size:14.5px; color:var(--text-hi); margin-bottom:4px; }
+  .statement-points span{ font-size:13.5px; color:var(--text-mid); }
+
+  /* ---------- White paper ---------- */
+  .wp-doc{
+    border:1px solid var(--line);
+    background:var(--panel);
+    max-height:640px;
+    overflow-y:auto;
+  }
+  .wp-doc-bar{
+    position:sticky; top:0; z-index:2;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 24px;
+    background:var(--panel-2);
+    border-bottom:1px solid var(--line);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.05em;
+  }
+  .wp-doc-bar .wp-tag{ color:var(--brass); }
+  .wp-doc-bar .wp-meta{ color:var(--text-low); }
+  .wp-doc-body{ padding:36px 44px 48px; max-width:760px; }
+  .wp-doc-body .wp-lead{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:16.5px;
+    color:var(--text-hi);
+    margin-bottom:28px;
+    padding-bottom:24px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .wp-doc-body h3{
+    font-size:14px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--brass);
+    margin:30px 0 12px;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:500;
+  }
+  .wp-doc-body p{ font-size:14.5px; color:var(--text-mid); margin-bottom:6px; }
+  .wp-doc-body ol{ margin:8px 0 8px 20px; color:var(--text-mid); font-size:14.5px; }
+  .wp-doc-body ol li{ margin-bottom:6px; }
+  .wp-doc::-webkit-scrollbar{ width:8px; }
+  .wp-doc::-webkit-scrollbar-track{ background:var(--panel); }
+  .wp-doc::-webkit-scrollbar-thumb{ background:var(--line); }
+
+  @media (max-width: 620px){
+    .wp-doc-body{ padding:26px 22px 36px; }
+    .wp-doc-bar{ flex-direction:column; align-items:flex-start; gap:4px; }
+  }
+
+  /* ---------- CTA ---------- */
+  .cta{
+    text-align:center;
+    padding:100px 0;
+  }
+  .cta .eyebrow{ justify-content:center; margin-bottom:20px; }
+  .cta .eyebrow::before{ display:none; }
+  .cta h2{ font-size:clamp(30px,4vw,44px); max-width:620px; margin:0 auto 18px; }
+  .cta p{ color:var(--text-mid); max-width:480px; margin:0 auto 36px; }
+  .cta-actions{ display:flex; justify-content:center; gap:14px; }
+
+  /* ---------- Footer ---------- */
+  footer{
+    border-top:1px solid var(--line);
+    padding:44px 0;
+  }
+  .footer-row{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;
+  }
+  .footer-row .logo{ font-size:15px; }
+  .footer-meta{ font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--text-low); display:flex; gap:24px; flex-wrap:wrap; }
+
+  /* ---------- Reveal on scroll ---------- */
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ opacity:1; transform:none; transition:none; }
+    .cursor-blink{ animation:none; }
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 960px){
+    .hero{ grid-template-columns:1fr; }
+    .entropy-frame{ max-width:420px; margin:0 auto; }
+    .feature-grid{ grid-template-columns:1fr; }
+    .terminal-wrap{ grid-template-columns:1fr; }
+    .material-grid{ grid-template-columns:1fr; }
+    .statement{ grid-template-columns:1fr; }
+    .nav-links{ display:none; }
+  }
+  @media (max-width: 620px){
+    .layer-row{ grid-template-columns:40px 1fr; }
+    .layer-row .layer-desc{ grid-column:2 / 3; }
+    .hero-stats{ flex-wrap:wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <nav>
+      <div class="logo"><i class='bx bxs-shield-alt-2'></i>XOREED</div>
+      <div class="nav-links">
+        <a href="javascript:void(0)" data-scroll="fitur">Fitur</a>
+        <a href="javascript:void(0)" data-scroll="keamanan">Keamanan</a>
+        <a href="javascript:void(0)" data-scroll="entropi">Entropi</a>
+        <a href="javascript:void(0)" data-scroll="material">Material</a>
+        <a href="javascript:void(0)" data-scroll="whitepaper">White Paper</a>
+        <a href="javascript:void(0)" data-scroll="kompetisi">Kompetisi</a>
+      </div>
+      <a href="javascript:void(0)" data-scroll="whitepaper" class="nav-cta">BACA WHITE PAPER</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero" style="border-top:none; padding-top:96px;">
+    <div class="container" style="display:grid; grid-template-columns:1.05fr 0.95fr; gap:56px; align-items:center;">
+      <div class="hero-copy">
+        <div class="eyebrow">DOMPET DIGITAL PERANGKAT KERAS</div>
+        <h1>Aset kripto Anda,<br>ditandatangani <em>tanpa tombol</em>,<br>dipercaya tanpa syarat.</h1>
+        <p class="lede">Dompet perangkat keras non-custodial tanpa komponen mekanik. Setiap transaksi diverifikasi secara visual di layar perangkat &mdash; terisolasi penuh dari koneksi online, dan tidak pernah bergantung pada kepercayaan terhadap pihak luar.</p>
+        <div class="hero-actions">
+          <a href="javascript:void(0)" data-scroll="fitur" class="btn btn-primary"><i class='bx bx-right-arrow-alt'></i> Lihat Cara Kerja</a>
+          <a href="javascript:void(0)" data-scroll="material" class="btn btn-secondary"><i class='bx bx-cube-alt'></i> Spesifikasi Fisik</a>
+        </div>
+        <div class="hero-stats">
+          <div><span class="num">0</span><span class="lbl">TOMBOL FISIK</span></div>
+          <div><span class="num">100%</span><span class="lbl">OFFLINE SIGNING</span></div>
+          <div><span class="num">3&times;</span><span class="lbl">SUMBER ENTROPI</span></div>
+          <div><span class="num">1-KALI</span><span class="lbl">KODE VERIFIKASI</span></div>
+        </div>
+      </div>
+
+      <div class="entropy-frame">
+        <div class="frame-label">ENTROPY_POOL <span>// live</span></div>
+        <canvas id="entropyCanvas"></canvas>
+        <i class='bx bxs-key key-glyph'></i>
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="fitur">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="eyebrow">FUNGSI UTAMA</div>
+        <h2>Dirancang untuk melindungi, bukan sekadar menyimpan.</h2>
+        <p>Setiap keputusan desain diarahkan untuk mengurangi permukaan serangan &mdash; dari malware, akses tidak sah, hingga kelalaian pengguna sehari-hari.</p>
+      </div>
+
+      <div class="feature-grid reveal">
+        <div class="feature-card">
+          <i class='bx bx-slider-alt bx' ></i>
+          <h3>Tanpa Komponen Mekanik</h3>
+          <p>Tidak ada tombol fisik yang aus. Seluruh interaksi berjalan lewat tampilan visual dan verifikasi digital, menjaga keandalan jangka panjang.</p>
+        </div>
+        <div class="feature-card">
+          <i class='bx bx-signature bx'></i>
+          <h3>Penandatanganan Terisolasi</h3>
+          <p>Transaksi hanya diproses setelah persetujuan langsung di perangkat. Kunci privat tidak pernah meninggalkan ruang isolasinya.</p>
+        </div>
+        <div class="feature-card">
+          <i class='bx bx-lock-alt bx'></i>
+          <h3>Kunci Akses Berlapis</h3>
+          <p>Pembatasan percobaan kata sandi dan penguncian otomatis saat perangkat tidak digunakan mencegah akses tanpa sepengetahuan Anda.</p>
+        </div>
+        <div class="feature-card">
+          <i class='bx bx-qr-scan bx'></i>
+          <h3>Kode Verifikasi Sekali Pakai</h3>
+          <p>Setiap tindakan penting memunculkan kode acak yang hanya berlaku satu kali, dikonfirmasi lewat aplikasi pendamping.</p>
+        </div>
+        <div class="feature-card">
+          <i class='bx bx-wifi-off bx'></i>
+          <h3>Tidak Bergantung Koneksi Online</h3>
+          <p>Seluruh proses sensitif berjalan di dalam perangkat. Sistem eksternal hanya bertugas sebagai antarmuka, bukan pengambil keputusan.</p>
+        </div>
+        <div class="feature-card">
+          <i class='bx bx-nfc bx'></i>
+          <h3>Cadangan Terenkripsi via NFC</h3>
+          <p>Opsi pencadangan yang lebih tahan lama dibanding kertas, tetap tidak dapat dibaca tanpa kata sandi yang sesuai.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAYERED SECURITY -->
+  <section id="keamanan">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="eyebrow">MODEL KEAMANAN BERLAPIS</div>
+        <h2>Empat lapisan, satu tujuan: aset tetap di tangan Anda.</h2>
+        <p>Setiap lapisan berdiri sendiri &mdash; jika satu terganggu, lapisan lain tetap menahan.</p>
+      </div>
+
+      <div class="layers reveal">
+        <div class="layer-row">
+          <div class="layer-idx">01</div>
+          <div class="layer-title">Autentikasi Perangkat</div>
+          <div class="layer-desc">Kata sandi perangkat terpisah dari kata sandi dompet cadangan, membatasi dampak jika satu lapisan bocor.</div>
+        </div>
+        <div class="layer-row">
+          <div class="layer-idx">02</div>
+          <div class="layer-title">Pembatasan Percobaan</div>
+          <div class="layer-desc">Upaya menebak kata sandi berulang dibatasi secara ketat, dan perangkat mengunci otomatis saat idle.</div>
+        </div>
+        <div class="layer-row">
+          <div class="layer-idx">03</div>
+          <div class="layer-title">Konfirmasi Visual Aktif</div>
+          <div class="layer-desc">Tidak ada transaksi tersembunyi &mdash; setiap tindakan menampilkan kode verifikasi acak di layar perangkat.</div>
+        </div>
+        <div class="layer-row">
+          <div class="layer-idx">04</div>
+          <div class="layer-title">Enkripsi Per-Dompet</div>
+          <div class="layer-desc">Setiap dompet memiliki perlindungan kriptografis tersendiri dan tidak saling bergantung satu sama lain.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENTROPY / CRYPTO -->
+  <section id="entropi">
+    <div class="container">
+      <div class="terminal-wrap">
+        <div class="terminal reveal">
+          <div class="terminal-bar">
+            <span></span><span></span><span></span>
+            <div class="label">entropy_pool.log</div>
+          </div>
+          <div class="terminal-body">
+            <div class="ln"><span class="comment">$</span> collecting sources...</div>
+            <div class="ln"><span class="k">trng_internal</span>  <span class="v">active</span> <span class="ok">✓</span></div>
+            <div class="ln"><span class="k">jitter_timing</span>  <span class="v">active</span> <span class="ok">✓</span></div>
+            <div class="ln"><span class="k">analog_noise</span>   <span class="v">active</span> <span class="ok">✓</span></div>
+            <div class="ln"><span class="comment">$</span> extracting via hash function...</div>
+            <div class="ln"><span class="k">output</span> <span class="v">uniform, non-deterministic</span></div>
+            <div class="ln"><span class="k">seed_stored</span> <span class="v">false</span></div>
+            <div class="ln"><span class="k">curve</span> <span class="v">elliptic (ECC)</span></div>
+            <div class="ln"><span class="comment">$</span> ready for key generation <span class="cursor-blink"></span></div>
+          </div>
+        </div>
+
+        <div class="terminal-notes reveal">
+          <div class="eyebrow">SUMBER ENTROPI &amp; KRIPTOGRAFI</div>
+          <h2>Keacakan yang tidak bisa ditebak, bukan hanya sulit ditebak.</h2>
+          <p>Nilai acak digabungkan dari beberapa sumber non-deterministik, lalu diekstraksi lewat fungsi hash kriptografis &mdash; tidak pernah bergantung pada seed algoritmik statis, dan tidak disimpan setelah digunakan.</p>
+          <ul>
+            <li><i class='bx bx-radio-circle-marked bx'></i><div><b>TRNG Internal</b><span>&mdash; sumber acak fisik utama, tidak dapat direproduksi dari luar.</span></div></li>
+            <li><i class='bx bx-radio-circle-marked bx'></i><div><b>Jitter Waktu &amp; Noise Analog</b><span>&mdash; variasi lingkungan sebagai lapisan entropi tambahan.</span></div></li>
+            <li><i class='bx bx-radio-circle-marked bx'></i><div><b>Kriptografi Kurva Eliptik</b><span>&mdash; nonce dan kunci privat dibangun dari entropi yang telah diekstraksi, mencegah penggunaan ulang nilai acak.</span></div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MATERIALS -->
+  <section id="material">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="eyebrow">SPESIFIKASI FISIK</div>
+        <h2>Cangkang yang dibangun untuk bertahan, bukan sekadar tampil.</h2>
+        <p>Material dipilih untuk ketahanan fisik, bukan estetika semata &mdash; melengkapi pendekatan tanpa komponen mekanik di dalamnya.</p>
+      </div>
+
+      <div class="material-grid reveal">
+        <div class="material-card">
+          <div class="swatch swatch-carbon"></div>
+          <div class="material-info">
+            <span class="tag">LAPISAN LUAR</span>
+            <h3>Faux Carbon Fiber</h3>
+            <p>Tekstur anyaman ringan dan tahan gores untuk penggunaan harian yang intensif.</p>
+          </div>
+        </div>
+        <div class="material-card">
+          <div class="swatch swatch-kevlar"></div>
+          <div class="material-info">
+            <span class="tag">LAPISAN STRUKTUR</span>
+            <h3>Serat Aramid (Kevlar)</h3>
+            <p>Serat berkekuatan tinggi yang memperkuat ketahanan benturan pada rangka perangkat.</p>
+          </div>
+        </div>
+        <div class="material-card">
+          <div class="swatch swatch-epoxy"></div>
+          <div class="material-info">
+            <span class="tag">LAPISAN PELINDUNG</span>
+            <h3>Epoxy Resin</h3>
+            <p>Pelapis akhir yang mengunci seluruh lapisan, tahan kelembapan dan keausan jangka panjang.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NON-CUSTODIAL -->
+  <section id="non-custodial">
+    <div class="container">
+      <div class="statement">
+        <blockquote class="reveal">Kami tidak mengetahui, menyimpan, atau memiliki akses terhadap kunci Anda. <span class="brass-mark">Kendali penuh berada di tangan pengguna</span> &mdash; bukan sebagai slogan, tapi sebagai batasan teknis.</blockquote>
+        <div class="statement-points reveal">
+          <div class="point">
+            <i class='bx bx-key bx'></i>
+            <div><b>Tidak Ada Pemulihan dari Kami</b><span>Kata sandi hilang, kunci hilang &mdash; tidak ada jalan pintas dari pihak kami.</span></div>
+          </div>
+          <div class="point">
+            <i class='bx bx-transfer bx'></i>
+            <div><b>Pemulihan Sepenuhnya di Tangan Anda</b><span>Perangkat baru dipulihkan dari cadangan yang hanya Anda miliki.</span></div>
+          </div>
+          <div class="point">
+            <i class='bx bx-mobile-alt bx'></i>
+            <div><b>Sederhana Tanpa Mengorbankan Keamanan</b><span>Alur penggunaan dirancang jelas, tanpa perlu memahami detail teknis rumit.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHITE PAPER -->
+  <section id="whitepaper">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="eyebrow">DOKUMEN RESMI</div>
+        <h2>White Paper XOREED</h2>
+        <p>Dokumen lengkap prinsip desain, arsitektur keamanan, dan model non-custodial XOREED. Baca langsung di halaman ini, atau unduh sebagai berkas <code>.txt</code> untuk disimpan.</p>
+        <div class="hero-actions" style="margin-top:8px;">
+          <button id="downloadWhitepaper" class="btn btn-primary"><i class='bx bx-download'></i> Unduh White Paper (.txt)</button>
+          <a href="javascript:void(0)" data-scroll="kompetisi" class="btn btn-secondary"><i class='bx bx-right-arrow-alt'></i> Tentang Kompetisi</a>
+        </div>
+      </div>
+
+      <div class="wp-doc reveal">
+        <div class="wp-doc-bar">
+          <span class="wp-tag">XOREED_WHITEPAPER.TXT</span>
+          <span class="wp-meta">NON-CUSTODIAL &middot; BERBASIS KEAMANAN BERLAPIS</span>
+        </div>
+        <div class="wp-doc-body" id="whitepaperContent">
+          <p class="wp-lead">Dokumen ini menjelaskan rancangan dan prinsip kerja XOREED, sistem dompet digital berbasis perangkat keras yang dirancang untuk memberikan keamanan tinggi, kerahasiaan data, serta kendali penuh di tangan pengguna. Sistem ini mengadopsi pendekatan non-custodial, di mana seluruh kunci keamanan dihasilkan, disimpan, dan digunakan secara eksklusif oleh pengguna tanpa keterlibatan pihak kami dalam bentuk apa pun.</p>
+
+          <h3>Tujuan Sistem</h3>
+          <p>Tujuan utama XOREED adalah menyediakan sarana penyimpanan dan penandatanganan transaksi aset kripto yang aman, tahan terhadap malware, serta andal untuk penggunaan jangka panjang. Sistem ini dirancang untuk mengurangi ketergantungan pada kepercayaan terhadap perangkat lunak eksternal dan meminimalkan risiko akibat kesalahan penggunaan.</p>
+
+          <h3>Prinsip Desain</h3>
+          <ol>
+            <li>Kendali penuh berada di tangan pengguna.</li>
+            <li>Kerahasiaan data sebagai prioritas utama.</li>
+            <li>Tidak adanya ketergantungan pada koneksi online.</li>
+            <li>Tidak adanya akses atau pengetahuan pihak kami terhadap data pengguna.</li>
+            <li>Ketahanan perangkat untuk penggunaan jangka panjang.</li>
+          </ol>
+
+          <h3>Arsitektur Umum</h3>
+          <p>Sistem bekerja secara terisolasi dari sistem komputer pengguna. Perangkat eksternal hanya berfungsi sebagai antarmuka untuk menampilkan informasi dan mengirim perintah, sementara seluruh proses sensitif dilakukan di dalam perangkat. Dengan pendekatan ini, sistem eksternal tidak memiliki kewenangan untuk menandatangani transaksi atau mengakses kunci keamanan.</p>
+
+          <h3>Desain Tanpa Komponen Mekanik</h3>
+          <p>Perangkat dirancang tanpa komponen mekanik seperti tombol fisik. Seluruh interaksi dilakukan melalui tampilan visual dan mekanisme verifikasi digital. Desain ini bertujuan untuk mengurangi risiko kegagalan fisik, meningkatkan usia pakai perangkat, dan menjaga konsistensi perilaku perangkat dalam jangka panjang.</p>
+
+          <h3>Model Keamanan</h3>
+          <p>Keamanan sistem dibangun secara berlapis, mencakup autentikasi pengguna untuk akses perangkat, pembatasan jumlah percobaan untuk mencegah upaya penebakan, penguncian otomatis saat tidak ada aktivitas, dan konfirmasi visual untuk setiap tindakan penting. Seluruh tindakan sensitif memerlukan persetujuan aktif dari pengguna langsung melalui perangkat.</p>
+
+          <h3>Mekanisme Konfirmasi Tindakan</h3>
+          <p>Setiap transaksi atau tindakan penting harus dikonfirmasi menggunakan kode verifikasi yang dihasilkan secara acak dan hanya berlaku satu kali. Kode ini ditampilkan langsung pada layar perangkat dan diverifikasi melalui aplikasi pendamping, memastikan tidak ada transaksi yang dapat dijalankan secara tersembunyi atau otomatis.</p>
+
+          <h3>Penandatanganan Transaksi</h3>
+          <p>Perangkat berfungsi sebagai alat penandatanganan transaksi aset kripto. Proses penandatanganan hanya dapat dilakukan setelah pengguna memberikan persetujuan langsung. Kunci privat tidak pernah meninggalkan perangkat dan tidak pernah terekspos ke sistem eksternal.</p>
+
+          <h3>Kriptografi dan Penyimpanan Data</h3>
+          <p>Data rahasia disimpan dalam bentuk terenkripsi menggunakan mekanisme kriptografi yang kuat. Setiap dompet memiliki perlindungan tersendiri dan tidak saling bergantung. Pemisahan kata sandi diterapkan antara akses perangkat, dompet, dan cadangan untuk membatasi dampak risiko apabila salah satu lapisan keamanan terganggu.</p>
+
+          <h3>Sumber Entropi dan Generasi Nilai Acak</h3>
+          <p>Sistem ini menggunakan pendekatan penggabungan beberapa sumber entropi non-deterministik untuk seluruh proses kriptografi yang memerlukan nilai acak, mencakup True Random Number Generator (TRNG) internal, variasi jitter waktu internal, serta noise dari masukan analog yang tidak bersifat deterministik.</p>
+          <p>Pendekatan ini dirancang untuk menghindari ketergantungan pada satu sumber entropi tunggal dan meminimalkan risiko kelemahan akibat bias, pola, atau kondisi lingkungan tertentu. Seluruh nilai entropi yang dikumpulkan digabungkan dan diproses menggunakan fungsi hash kriptografis sebagai mekanisme ekstraksi, sehingga menghasilkan keluaran dengan distribusi yang seragam dan sulit diprediksi. Nilai acak yang dihasilkan tidak bergantung pada seed algoritmik statis, bersifat sementara, dan tidak disimpan setelah digunakan.</p>
+
+          <h3>Penerapan Kriptografi Kurva Eliptik</h3>
+          <p>XOREED mengadopsi kriptografi berbasis Elliptic Curve untuk pengelolaan kunci dan proses penandatanganan transaksi aset kripto. Seluruh proses generasi kunci privat dan nilai acak pendukung memanfaatkan keluaran dari sistem penghasil entropi non-deterministik yang telah melalui proses penggabungan dan ekstraksi &mdash; mencegah nonce yang dapat diprediksi, menghindari penggunaan ulang nilai acak, serta menekan risiko kebocoran kunci privat akibat kualitas entropi yang tidak memadai.</p>
+
+          <h3>Keandalan Kriptografi Jangka Panjang</h3>
+          <p>Keamanan kriptografi tidak hanya bergantung pada kekuatan algoritma yang digunakan, tetapi juga pada kualitas sumber entropi yang menjadi fondasi sistem. XOREED dirancang dengan perhatian khusus terhadap kualitas bilangan acak sebagai bagian penting dari arsitektur keamanan, agar tetap andal, konsisten, dan relevan untuk penggunaan jangka panjang.</p>
+
+          <h3>Pencadangan Data dengan NFC</h3>
+          <p>Sebagai opsi tambahan, sistem menyediakan mekanisme pencadangan data terenkripsi menggunakan media NFC &mdash; memberikan kemudahan penggunaan dan ketahanan fisik yang lebih baik dibandingkan kertas. Data pada media NFC tetap tidak dapat digunakan tanpa kata sandi yang sesuai. Metode ini bersifat opsional dan tidak menggantikan cadangan fisik utama yang dianjurkan untuk disimpan secara aman oleh pengguna.</p>
+
+          <h3>Model Non-Custodial dan Tanggung Jawab Pengguna</h3>
+          <p>XOREED sepenuhnya bersifat non-custodial. Kami tidak mengetahui, menyimpan, atau memiliki akses terhadap kunci keamanan, data rahasia, maupun aset pengguna, dan tidak memiliki kemampuan teknis untuk memulihkan dompet, mengatur ulang kata sandi, atau mengakses aset pengguna. Seluruh tanggung jawab pengelolaan, penyimpanan cadangan, dan pemulihan berada sepenuhnya di tangan pengguna.</p>
+
+          <h3>Kemudahan Penggunaan</h3>
+          <p>Meskipun dirancang dengan standar keamanan tinggi, XOREED tetap mempertimbangkan kemudahan penggunaan. Alur interaksi dibuat sederhana, jelas, dan konsisten, sehingga dapat digunakan oleh pengguna tanpa latar belakang teknis mendalam.</p>
+
+          <h3>Pemulihan Dompet</h3>
+          <p>Apabila perangkat mengalami kerusakan, pengguna dapat memulihkan dompet pada perangkat baru menggunakan data cadangan yang dimiliki. Proses ini dilakukan sepenuhnya oleh pengguna tanpa keterlibatan pihak kami.</p>
+
+          <h3>Spesifikasi Material</h3>
+          <p>Bahan: Faux Carbon Fiber &middot; Serat Aramid (Kevlar) &middot; Resin: Epoxy Resin.</p>
+
+          <h3>Kesimpulan</h3>
+          <p>XOREED dirancang untuk memberikan keseimbangan antara keamanan, kerahasiaan, dan kemudahan penggunaan. Dengan pendekatan tanpa komponen mekanik, konfirmasi visual, kriptografi berlapis, serta model non-custodial, sistem ini ditujukan untuk menjadi solusi penyimpanan aset kripto yang aman, andal, dan berkelanjutan dalam jangka panjang.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA / COMPETITION -->
+  <section id="kompetisi" class="cta">
+    <div class="container">
+      <div class="eyebrow reveal">VIBE CODING COMPETITION &times; DEVWEB3 JOGJA</div>
+      <h2 class="reveal">Dari ide ke prototipe yang benar-benar berfungsi.</h2>
+      <p class="reveal">Proyek ini dikembangkan dalam sesi Vibe Coding Competition, dengan bimbingan langsung dari mentor DevWeb3 Jogja &mdash; ruang kolaboratif untuk memvalidasi ide, membangun MVP, dan menyempurnakan produk Web3 sebelum dipresentasikan ke juri.</p>
+      <div class="cta-actions reveal">
+        <a href="javascript:void(0)" data-scroll="whitepaper" class="btn btn-primary"><i class='bx bx-file'></i> Baca White Paper Lengkap</a>
+        <a href="javascript:void(0)" data-scroll="fitur" class="btn btn-secondary"><i class='bx bx-arrow-back'></i> Kembali ke Fitur</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <div class="logo"><i class='bx bxs-shield-alt-2'></i>XOREED</div>
+      <div class="footer-meta">
+        <span>NON-CUSTODIAL BY DESIGN</span>
+        <span>DEVWEB3 JOGJA</span>
+        <span>VIBE CODING COMPETITION</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Internal navigation without touching the URL / hash
+  document.querySelectorAll('[data-scroll]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.getElementById(el.getAttribute('data-scroll'));
+      if(target){
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // Download white paper as .txt
+  const downloadBtn = document.getElementById('downloadWhitepaper');
+  if(downloadBtn){
+    downloadBtn.addEventListener('click', () => {
+      const doc = document.getElementById('whitepaperContent');
+      const parts = [];
+      parts.push('WHITE PAPER — XOREED');
+      parts.push('SISTEM DOMPET DIGITAL PERANGKAT KERAS NON-CUSTODIAL');
+      parts.push('='.repeat(60));
+      parts.push('');
+
+      doc.querySelectorAll('h3, p, ol').forEach(node => {
+        if(node.tagName === 'H3'){
+          parts.push('');
+          parts.push(node.textContent.toUpperCase());
+          parts.push('-'.repeat(node.textContent.length));
+        } else if(node.tagName === 'P'){
+          parts.push(node.textContent.trim());
+        } else if(node.tagName === 'OL'){
+          Array.from(node.children).forEach((li, i) => {
+            parts.push(`${i+1}. ${li.textContent.trim()}`);
+          });
+        }
+      });
+
+      parts.push('');
+      parts.push('='.repeat(60));
+      parts.push('XOREED — Vibe Coding Competition x DevWeb3 Jogja');
+
+      const blob = new Blob([parts.join('\n')], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'XOREED-White-Paper.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el => io.observe(el));
+
+  // Entropy particle canvas — noise converging toward a stable center,
+  // representing entropy sources feeding a hash-extraction pipeline.
+  const canvas = document.getElementById('entropyCanvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, dpr;
+  const particles = [];
+  const COUNT = 70;
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resize(){
+    dpr = window.devicePixelRatio || 1;
+    w = canvas.clientWidth;
+    h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  function initParticles(){
+    particles.length = 0;
+    for(let i=0;i<COUNT;i++){
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * (Math.min(w,h)*0.48);
+      particles.push({
+        x: w/2 + Math.cos(angle)*radius,
+        y: h/2 + Math.sin(angle)*radius,
+        vx: (Math.random()-0.5)*0.6,
+        vy: (Math.random()-0.5)*0.6,
+        r: Math.random()*1.6 + 0.6,
+        hue: Math.random() > 0.75 ? 'signal' : 'brass'
+      });
+    }
+  }
+
+  function step(){
+    ctx.clearRect(0,0,w,h);
+    const cx = w/2, cy = h/2;
+
+    particles.forEach(p => {
+      // gentle brownian drift
+      p.vx += (Math.random()-0.5)*0.12;
+      p.vy += (Math.random()-0.5)*0.12;
+
+      // soft pull toward center ring (never fully collapsing — "extracted, not stored")
+      const dx = cx - p.x, dy = cy - p.y;
+      const dist = Math.sqrt(dx*dx+dy*dy) || 1;
+      const targetR = Math.min(w,h) * 0.34;
+      const pull = (dist - targetR) * 0.0025;
+      p.vx += (dx/dist) * pull;
+      p.vy += (dy/dist) * pull;
+
+      // damping
+      p.vx *= 0.96;
+      p.vy *= 0.96;
+
+      p.x += p.vx;
+      p.y += p.vy;
+
+      const color = p.hue === 'signal' ? '95,201,160' : '200,155,74';
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(${color},0.75)`;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    });
+
+    // faint connective lines between nearby particles (hash-graph feel)
+    ctx.lineWidth = 0.5;
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const a = particles[i], b = particles[j];
+        const dx = a.x-b.x, dy = a.y-b.y;
+        const d = Math.sqrt(dx*dx+dy*dy);
+        if(d < 46){
+          ctx.strokeStyle = `rgba(150,160,166,${0.08 * (1 - d/46)})`;
+          ctx.beginPath();
+          ctx.moveTo(a.x,a.y);
+          ctx.lineTo(b.x,b.y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    if(!prefersReduced) requestAnimationFrame(step);
+  }
+
+  function start(){
+    resize();
+    initParticles();
+    step();
+    if(prefersReduced){
+      // draw a single static frame
+      step();
+    }
+  }
+
+  window.addEventListener('resize', () => { resize(); initParticles(); });
+  start();
+</script>
+
+</body>
+</html>
